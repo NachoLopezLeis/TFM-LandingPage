@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>IQAE en hardware IQM y CVaR</title>
+  <meta name="description" content="Caracterización en hardware de la estimación iterativa de amplitud cuántica en procesadores IQM, con aplicación a la optimización de carteras bajo riesgo CVaR y validación bajo Basilea IV.">
+  <meta name="author" content="Ignacio López Leis">
+  <meta property="og:title" content="IQAE en hardware IQM y CVaR">
+  <meta property="og:description" content="Caracterización en hardware de la estimación iterativa de amplitud cuántica en procesadores IQM, con aplicación a la optimización de carteras bajo riesgo CVaR.">
+  <meta property="og:image" content="tfm-cover.png">
+  <meta property="og:type" content="article">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230F162A'/%3E%3Crect x='6' y='14' width='20' height='2' fill='%235eead4'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="data/theme.css">
+  <link rel="stylesheet" href="assets/player.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+  <script src="data/presentation.js"></script>
+  <script src="assets/player.js" defer></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Thesis",
+    "name": "Caracterización en hardware de la Estimación Iterativa de Amplitud Cuántica en procesadores IQM, con aplicación a la optimización de carteras bajo riesgo CVaR",
+    "author": { "@type": "Person", "name": "Ignacio López Leis", "url": "https://www.linkedin.com/in/lopezleisignacio/" },
+    "contributor": { "@type": "Person", "name": "Luis de Pedro Sánchez", "jobTitle": "Tutor" },
+    "sourceOrganization": { "@type": "CollegeOrUniversity", "name": "Universidad Autónoma de Madrid", "url": "https://www.uam.es/" },
+    "datePublished": "2026-09",
+    "inLanguage": "es",
+    "keywords": "IQAE, IQM, CVaR, Expected Shortfall, Basilea IV, ZNE, NISQ",
+    "sameAs": ["https://github.com/NachoLopezLeis/QuantumCVaRPortfolioOptimization-TFMIgnacioLopez"]
+  }
+  </script>
+  <style>
+    :root {
+      --ink: #0F162A;
+      --paper: #F8FAFC;
+      --rule: color-mix(in srgb, var(--c-border) 16%, transparent);
+      --serif: "Source Serif 4", "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+      --footer-bg: #0a0e14;
+      --footer-ink: #e6edf3;
+      --footer-muted: #8b9aab;
+      --footer-signal: #5eead4;
+    }
+    /* Paleta de la landing. !important gana al applyTheme inline; al presentar se suelta y entra el naranja. */
+    html:not(.is-presenting) {
+      --c-bg: #CBD5E1 !important;
+      --c-surface: #FFFFFF !important;
+      --c-text: #0F162A !important;
+      --c-muted: #475569 !important;
+      --c-accent: #4F46E5 !important;
+      --c-border: #0F162A !important;
+    }
+    html { color-scheme: light; scrollbar-color: #4F46E5 #CBD5E1; scrollbar-width: thin; }
+    html.is-presenting { scrollbar-color: #0F162A #FF4B1F; }
+    ::selection { background: #4F46E5; color: #F8FAFC; }
+    html.is-presenting ::selection { background: #0F162A; color: #FFFFFF; }
+
+    .landing-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem 1rem;
+      margin-top: 2.5rem;
+    }
+    .landing-actions .start-button { margin-top: 0; }
+    .ghost-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1em 1.35em;
+      border: 1.5px solid var(--c-border);
+      border-radius: 999px;
+      color: var(--c-text);
+      font: 600 1.05rem/1 var(--f-body);
+      text-decoration: none;
+    }
+    .ghost-link:hover { background: var(--c-surface); }
+    .ghost-link svg { width: 1em; height: 1em; fill: currentColor; }
+    .landing-extra {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem 1.15rem;
+      margin: 1.25rem 0 0;
+    }
+    .landing-extra a {
+      color: var(--c-text);
+      font-size: 0.88rem;
+      font-weight: 600;
+      text-decoration: none;
+      text-underline-offset: 4px;
+    }
+    .landing-extra a:hover { text-decoration: underline; }
+
+    .authors {
+      width: min(1280px, 100% - 2 * max(20px, env(safe-area-inset-left), env(safe-area-inset-right)));
+      margin: 0 auto 2.5rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.25rem 2.5rem;
+      max-width: 640px;
+    }
+    .author-name {
+      margin: 0;
+      font-family: var(--f-display);
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: -0.02em;
+    }
+    .author-role { margin: 0.3rem 0 0; color: #3D4A5C; font-size: 0.95rem; }
+    .author-links { display: flex; gap: 0.9rem; margin-top: 0.4rem; }
+    .author-link { color: var(--c-accent); font-size: 0.82rem; font-weight: 600; text-decoration: none; }
+    .author-link:hover { text-decoration: underline; }
+
+    .band { width: 100%; border-block: 1px solid var(--rule); }
+    .band--paper { background: var(--paper); }
+    .band-inner {
+      width: min(760px, 100% - 2 * max(20px, env(safe-area-inset-left), env(safe-area-inset-right)));
+      margin: 0 auto;
+      padding: clamp(3.25rem, 8vw, 5.5rem) 0;
+    }
+    .band-inner--wide { width: min(1040px, 100% - 2 * max(20px, env(safe-area-inset-left), env(safe-area-inset-right))); }
+
+    .full-title {
+      margin: 0;
+      font-family: var(--f-display);
+      font-weight: 800;
+      font-size: clamp(1.55rem, 3.4vw, 2.4rem);
+      letter-spacing: -0.035em;
+      line-height: 1.12;
+      text-wrap: balance;
+    }
+    .full-lede { margin: 1.1rem 0 0; max-width: 62ch; color: #3D4A5C; font-size: 1.05rem; line-height: 1.45; }
+    .abstract h2, .findings h2, .pipeline h2, .code h2, .biblio h2 {
+      margin: 0 0 1.15rem;
+      font-family: var(--f-display);
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+    .abstract { margin-top: 2.75rem; }
+    .abstract p {
+      margin: 0 0 1.05rem;
+      font-family: var(--serif);
+      font-size: 1.125rem;
+      line-height: 1.62;
+      max-width: 68ch;
+    }
+    .keywords {
+      margin: 1.6rem 0 0;
+      padding-top: 1.15rem;
+      border-top: 1px solid var(--rule);
+      color: #3D4A5C;
+      font-size: 0.86rem;
+      line-height: 1.55;
+    }
+    .keywords b { color: var(--c-text); font-weight: 600; }
+
+    .findings { overflow-x: auto; }
+    .findings-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+    .findings-table th, .findings-table td {
+      padding: 0.85rem 0.9rem 0.85rem 0;
+      border-bottom: 1px solid var(--rule);
+      text-align: left;
+      vertical-align: top;
+    }
+    .findings-table th { font-size: 0.78rem; font-weight: 600; color: #3D4A5C; }
+    .findings-table td:first-child { width: 34%; font-weight: 600; padding-right: 1.25rem; }
+    .findings-note { margin: 1.15rem 0 0; color: #3D4A5C; font-size: 0.88rem; max-width: 68ch; }
+    .closing {
+      margin: 2.25rem 0 0;
+      max-width: 22ch;
+      font-family: var(--f-display);
+      font-size: clamp(1.55rem, 3vw, 2.05rem);
+      font-weight: 800;
+      letter-spacing: -0.035em;
+      line-height: 1.15;
+      text-wrap: balance;
+    }
+
+    .rail {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1.75rem 2.5rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .rail-step { padding-top: 0.9rem; border-top: 1px solid var(--c-border); }
+    .rail-step strong { display: block; font-size: 1rem; letter-spacing: -0.02em; }
+    .rail-step span { display: block; margin-top: 0.4rem; color: #3D4A5C; font-size: 0.92rem; line-height: 1.45; }
+
+    .code-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+      gap: 2.5rem 3rem;
+      align-items: start;
+    }
+    .code p { margin: 0 0 1rem; max-width: 58ch; font-size: 1.02rem; line-height: 1.55; }
+    .code-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      margin-top: 0.4rem;
+      padding: 0.85em 1.2em;
+      background: var(--c-text);
+      color: var(--c-surface);
+      font: 600 0.95rem/1 var(--f-body);
+      text-decoration: none;
+    }
+    .code-cta:hover { background: var(--c-accent); }
+    .code-cta svg { width: 1.05em; height: 1.05em; fill: currentColor; }
+    .tree {
+      margin: 0;
+      padding: 1.15rem 1.2rem;
+      background: var(--ink);
+      color: #E2E8F0;
+      font-family: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+      font-size: 0.78rem;
+      line-height: 1.65;
+      overflow-x: auto;
+    }
+    .tree .dim { color: #94A3B8; }
+    .tree .hi { color: var(--footer-signal); }
+
+    .ref-list { margin: 0; padding: 0; list-style: none; }
+    .ref-list li {
+      padding: 0.85rem 0;
+      border-top: 1px solid var(--rule);
+      font-size: 0.92rem;
+      line-height: 1.5;
+      max-width: 72ch;
+    }
+    .ref-list li:last-child { border-bottom: 1px solid var(--rule); }
+    .ref-list a { color: var(--c-accent); text-decoration: none; }
+    .ref-list a:hover { text-decoration: underline; }
+    .cite { margin: 1.5rem 0 0; padding: 1rem 0 0; color: #3D4A5C; font-size: 0.88rem; line-height: 1.5; max-width: 68ch; }
+
+    .site-footer {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      background: var(--footer-bg);
+      color: var(--footer-ink);
+    }
+    .paper-preview {
+      position: relative;
+      max-width: 42rem;
+      height: min(520px, 58vw);
+      margin: 0 auto -2.5rem;
+      overflow: hidden;
+      border-radius: 2px 2px 0 0;
+      transform: translateY(-2.5rem);
+    }
+    .paper-preview img {
+      display: block;
+      width: 100%;
+      background: #f4f1ea;
+      box-shadow: 0 18px 70px -24px rgb(94 234 212 / 0.28);
+      outline: 1px solid rgb(0 0 0 / 0.12);
+    }
+    .paper-fade {
+      pointer-events: none;
+      position: absolute;
+      inset: auto 0 0;
+      height: 11rem;
+      background: linear-gradient(to bottom, transparent, var(--footer-bg));
+    }
+    .footer-bar {
+      position: relative;
+      z-index: 2;
+      border-top: 1px solid color-mix(in srgb, var(--footer-signal) 35%, transparent);
+      padding: 2rem 1.5rem 2.25rem;
+      text-align: center;
+    }
+    .footer-title {
+      margin: 0 auto;
+      max-width: 28ch;
+      font-family: var(--f-display);
+      font-weight: 700;
+      font-size: clamp(1.15rem, 2.4vw, 1.45rem);
+      letter-spacing: -0.02em;
+      text-wrap: balance;
+    }
+    .footer-actions {
+      margin-top: 1.15rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem 1.25rem;
+    }
+    .footer-cta {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.7rem 1.25rem;
+      border-radius: 2px;
+      background: var(--footer-signal);
+      color: var(--footer-bg);
+      font: 600 0.9rem/1 var(--f-body);
+      text-decoration: none;
+    }
+    .footer-cta:hover { opacity: 0.9; }
+    .footer-cta--ghost {
+      background: transparent;
+      color: var(--footer-ink);
+      outline: 1px solid color-mix(in srgb, var(--footer-signal) 55%, transparent);
+    }
+    .footer-link { color: var(--footer-muted); font-size: 0.78rem; text-decoration: none; }
+    .footer-link:hover { color: var(--footer-ink); text-decoration: underline; }
+    .footer-note { margin: 1rem 0 0; color: var(--footer-muted); font-size: 0.78rem; }
+
+    html.is-presenting .landing,
+    html.is-presenting .authors,
+    html.is-presenting .landing-body,
+    html.is-presenting .site-footer { visibility: hidden; }
+    html:not(.is-presenting) .deck { display: none; }
+
+    @media (max-width: 900px) {
+      .rail { grid-template-columns: 1fr 1fr; }
+      .code-layout { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 720px) {
+      .landing-actions .start-button,
+      .landing-actions .ghost-link { width: 100%; justify-content: center; }
+      .rail { grid-template-columns: 1fr; }
+      .paper-preview { transform: translateY(-1.25rem); margin-bottom: -1.25rem; }
+      .paper-fade { height: 7rem; }
+      .findings-table thead { display: none; }
+      .findings-table tr { display: block; padding: 0.95rem 0; border-bottom: 1px solid var(--rule); }
+      .findings-table td { display: block; width: 100% !important; padding: 0.12rem 0; border: 0; }
+      .findings-table td:first-child { width: 100% !important; margin-bottom: 0.2rem; padding-right: 0; }
+      .findings-table td:nth-child(2)::before { content: "Simulación · "; color: #3D4A5C; font-weight: 600; }
+      .findings-table td:nth-child(3)::before { content: "Hardware · "; color: #3D4A5C; font-weight: 600; }
+    }
+  </style>
+</head>
+<body>
+  <header class="landing">
+    <p class="landing-meta">Ignacio López Leis, Septiembre 2026</p>
+    <h1 class="landing-title" data-landing="title">IQAE en hardware IQM y CVaR</h1>
+    <p class="landing-subtitle" data-landing="subtitle">Defensa de TFM · Máster en Computación Cuántica · UAM</p>
+    <p class="landing-description" data-landing="description">Caracterización en hardware de la estimación iterativa de amplitud cuántica en procesadores IQM, con aplicación a la optimización de carteras bajo riesgo CVaR y validación bajo Basilea IV.</p>
+    <div class="landing-actions">
+      <button id="start" class="start-button" type="button" data-landing="start">
+        <svg viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0l10 6-10 6z"/></svg>
+        <span data-landing="start-label">Empezar presentación</span>
+      </button>
+      <a class="ghost-link" href="https://github.com/NachoLopezLeis/QuantumCVaRPortfolioOptimization-TFMIgnacioLopez" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82A7.68 7.68 0 0 1 8 4.64c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+        Código en GitHub
+      </a>
+    </div>
+    <p class="landing-extra">
+      <a href="#abstract">Abstract</a>
+      <a href="#codigo">Código</a>
+      <a href="TFM-IgnacioLopezLeis.pdf" download="TFM-IgnacioLopezLeis.pdf">Memoria PDF</a>
+    </p>
+  </header>
+
+  <section class="authors" aria-label="Autores">
+    <div class="author">
+      <p class="author-name">Ignacio López Leis</p>
+      <p class="author-role">Autor · Máster en Computación Cuántica, UAM</p>
+      <div class="author-links">
+        <a class="author-link" href="https://www.linkedin.com/in/lopezleisignacio/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+        <a class="author-link" href="https://github.com/NachoLopezLeis/QuantumCVaRPortfolioOptimization-TFMIgnacioLopez" target="_blank" rel="noopener noreferrer">GitHub</a>
+      </div>
+    </div>
+    <div class="author">
+      <p class="author-name">Luis de Pedro Sánchez</p>
+      <p class="author-role">Tutor · Escuela Politécnica Superior, UAM</p>
+    </div>
+  </section>
+
+  <main id="deck" class="deck" aria-label="Slides"></main>
+
+  <div class="landing-body">
+    <section class="band band--paper" id="abstract" aria-labelledby="abs-title">
+      <div class="band-inner">
+        <p class="full-title">Caracterización en hardware de la Estimación Iterativa de Amplitud Cuántica en procesadores IQM, con aplicación a la optimización de carteras bajo riesgo CVaR</p>
+        <p class="full-lede">Un pipeline híbrido cuántico-clásico: de la estimación de amplitud en hardware NISQ a la validación financiera bajo Basilea IV.</p>
+        <article class="abstract">
+          <h2 id="abs-title">Abstract</h2>
+          <p>Este trabajo caracteriza experimentalmente la Estimación Iterativa de Amplitud Cuántica (IQAE; Grinko et al., 2021) en procesadores superconductores de IQM —Emerald y Garnet— e inserta el estimador en un pipeline híbrido para optimizar carteras bajo Conditional Value-at-Risk (CVaR). El CVaR, equivalente al Expected Shortfall de Basilea IV, es la pérdida media más allá del VaR: la medida con la que el banco dimensiona capital. IQAE promete una ventaja cuadrática frente a Monte Carlo, O(ε<sup>−1</sup>) contra O(ε<sup>−2</sup>). Aquí no se da por sentada: se mide dónde sobrevive en hardware NISQ y dónde deja de hacerlo.</p>
+          <p>El universo son 374 componentes del S&amp;P 500 (2018–2025). Una red de correlaciones selecciona la periferia (QUBO); el operador A carga la distribución de pérdidas y marca la cola α = 5&nbsp;%; IQAE estima el subgradiente de CVaR (Rockafellar–Uryasev; Skarlatos y Konofaos, 2025). En simulación el estimador alcanza ε ≈ 0,005. En hardware el error típico es ε<sub>hw</sub> ≈ 0,20. El umbral de aliasing —predicho analíticamente y confirmado en ambos chips— aparece en m* ≈ 3 rondas de Grover: más allá, IQAE puede converger a la rama 1−a. La mitigación por zero-noise extrapolation empeora hoy la estimación cruda. Pese al ruido, el orden de ranking entre carteras se conserva, y eso es lo que el optimizador necesita.</p>
+          <p>La conclusión no es que el banco pueda sustituir Monte Carlo. Es un mapa de validez: las condiciones bajo las que IQAE es usable en un chip real, y el tramo que todavía falta.</p>
+          <p class="keywords"><b>Palabras clave.</b> IQAE · IQM Emerald · IQM Garnet · CVaR · Expected Shortfall · Basilea IV · ZNE · NISQ · QUBO · S&amp;P 500</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="band" id="resultados" aria-labelledby="res-title">
+      <div class="band-inner band-inner--wide findings">
+        <h2 id="res-title">Lo que se midió</h2>
+        <table class="findings-table">
+          <thead>
+            <tr>
+              <th scope="col">Cantidad</th>
+              <th scope="col">Simulación (qiskit-aer)</th>
+              <th scope="col">Hardware (IQM Emerald / Garnet)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Error del estimador</td>
+              <td>ε ≈ 0,005</td>
+              <td>ε<sub>hw</sub> ≈ 0,20</td>
+            </tr>
+            <tr>
+              <td>Aliasing de IQAE</td>
+              <td>rama correcta</td>
+              <td>umbral m* ≈ 3; más allá puede devolver 1−a</td>
+            </tr>
+            <tr>
+              <td>Zero-noise extrapolation</td>
+              <td>—</td>
+              <td>hoy empeora el crudo; la estimación sin mitigar es la mejor opción</td>
+            </tr>
+            <tr>
+              <td>Orden de ranking</td>
+              <td>conservado</td>
+              <td>conservado: el optimizador sigue distinguiendo carteras</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="findings-note">Universo: 374 activos del S&amp;P 500 · 2018–2025 · cola α = 5&nbsp;% · registro de 4 qubits + 1 ancilla. C1: umbral de aliasing predicho y confirmado en Emerald y Garnet. C2: ZNE comparada en el mismo circuito; la estimación cruda gana. El ranking se conserva aunque el CVaR absoluto esté sesgado —esa es la condición de utilidad del optimizador, no la precisión de ε.</p>
+        <p class="closing">Todavía no. Pero ahora sabemos exactamente qué le falta.</p>
+      </div>
+    </section>
+
+    <section class="band band--paper" aria-labelledby="pipe-title">
+      <div class="band-inner band-inner--wide pipeline">
+        <h2 id="pipe-title">Pipeline</h2>
+        <ol class="rail">
+          <li class="rail-step"><strong>Universo</strong><span>374 nombres del S&amp;P 500, rendimientos 2018–2025.</span></li>
+          <li class="rail-step"><strong>Periferia</strong><span>QUBO sobre la red de correlaciones: el centro contagia, el borde diversifica.</span></li>
+          <li class="rail-step"><strong>Operador A</strong><span>Carga P(L) y marca la cola. 4 qubits de pérdida + ancilla.</span></li>
+          <li class="rail-step"><strong>IQAE</strong><span>Rondas de Grover adaptativas. Complejidad O(ε<sup>−1</sup>).</span></li>
+          <li class="rail-step"><strong>Subgradiente CVaR</strong><span>Rockafellar–Uryasev sobre la cola α = 5&nbsp;%.</span></li>
+          <li class="rail-step"><strong>IQM</strong><span>Sonda y pipeline en Emerald y Garnet, crudo frente a ZNE.</span></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="band" id="codigo" aria-labelledby="code-title">
+      <div class="band-inner band-inner--wide code">
+        <h2 id="code-title">Código</h2>
+        <div class="code-layout">
+          <div>
+            <p>El pipeline completo —selección de periferia, circuitos de IQAE, optimizador híbrido y scripts de hardware— está en un repositorio público. No hay caja negra: cada figura de la memoria se puede regenerar desde aquí.</p>
+            <a class="code-cta" href="https://github.com/NachoLopezLeis/QuantumCVaRPortfolioOptimization-TFMIgnacioLopez" target="_blank" rel="noopener noreferrer">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82A7.68 7.68 0 0 1 8 4.64c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+              Abrir el repositorio
+            </a>
+          </div>
+          <pre class="tree" tabindex="0"><span class="dim">github.com/NachoLopezLeis/</span>
+<span class="hi">QuantumCVaRPortfolioOptimization-TFMIgnacioLopez</span>
+
+<span class="dim">src/</span>
+  <span class="hi">phase_0/</span>  network_portfolio_selector.py
+  <span class="hi">phase_2/</span>  qae_circuits.py
+            hybridoptimizer.py
+
+<span class="dim">hardware</span>  IQM Emerald · IQM Garnet
+<span class="dim">stack</span>     Qiskit · IQM Resonance</pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="band band--paper" aria-labelledby="bib-title">
+      <div class="band-inner biblio">
+        <h2 id="bib-title">Referencias</h2>
+        <ol class="ref-list">
+          <li>Woerner, S. y Egger, D. J. (2019). Quantum risk analysis. <i>npj Quantum Information</i>, 5, 15. <a href="https://doi.org/10.1038/s41534-019-0130-6" target="_blank" rel="noopener noreferrer">doi:10.1038/s41534-019-0130-6</a></li>
+          <li>Grinko, D., Gacon, J., Zoufal, C. y Woerner, S. (2021). Iterative quantum amplitude estimation. <i>npj Quantum Information</i>, 7, 52. <a href="https://doi.org/10.1038/s41534-021-00379-1" target="_blank" rel="noopener noreferrer">doi:10.1038/s41534-021-00379-1</a></li>
+          <li>Rockafellar, R. T. y Uryasev, S. (2000). Optimization of conditional value-at-risk. <i>Journal of Risk</i>, 2(3), 21–41.</li>
+          <li>Basel Committee on Banking Supervision (2019). <i>Minimum capital requirements for market risk</i>. Banco de Pagos Internacionales. <a href="https://www.bis.org/bcbs/publ/d457.htm" target="_blank" rel="noopener noreferrer">bis.org/bcbs/publ/d457</a></li>
+          <li>Skarlatos, K. y Konofaos, N. (2025). Quantum subgradient estimation for CVaR optimization. <a href="https://arxiv.org/abs/2510.04736" target="_blank" rel="noopener noreferrer">arXiv:2510.04736</a></li>
+        </ol>
+        <p class="cite">Cómo citar esta memoria: López Leis, I. (2026). <i>Caracterización en hardware de la Estimación Iterativa de Amplitud Cuántica en procesadores IQM, con aplicación a la optimización de carteras bajo riesgo CVaR</i>. Trabajo Fin de Máster, Universidad Autónoma de Madrid.</p>
+      </div>
+    </section>
+  </div>
+
+  <footer class="site-footer">
+    <div class="paper-preview">
+      <img src="tfm-cover.png" alt="Portada de la memoria del TFM">
+      <div class="paper-fade"></div>
+    </div>
+    <div class="footer-bar">
+      <p class="footer-title">IQAE en hardware IQM y CVaR</p>
+      <div class="footer-actions">
+        <a class="footer-cta" href="TFM-IgnacioLopezLeis.pdf" download="TFM-IgnacioLopezLeis.pdf">Descargar PDF</a>
+        <a class="footer-cta footer-cta--ghost" href="https://github.com/NachoLopezLeis/QuantumCVaRPortfolioOptimization-TFMIgnacioLopez" target="_blank" rel="noopener noreferrer">Código en GitHub</a>
+        <a class="footer-link" href="https://www.uam.es/" target="_blank" rel="noopener noreferrer">Universidad Autónoma de Madrid</a>
+      </div>
+      <p class="footer-note">Defensa de TFM · Máster en Computación Cuántica · Septiembre 2026</p>
+    </div>
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      Deck.mount({ data: window.__PRESENTATION__, deck: '#deck', start: '#start' });
+    });
+  </script>
+</body>
+</html>
