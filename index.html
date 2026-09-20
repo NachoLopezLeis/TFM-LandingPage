@@ -55,6 +55,17 @@
     ::selection { background: #4F46E5; color: #F8FAFC; }
     html.is-presenting ::selection { background: #0F162A; color: #FFFFFF; }
 
+    .landing-author {
+      color: inherit;
+      font-weight: 600;
+      text-decoration: none;
+      text-underline-offset: 3px;
+    }
+    .landing-author:hover { color: var(--c-accent); text-decoration: underline; }
+    .landing-author:focus-visible {
+      outline: 2px solid var(--c-accent);
+      outline-offset: 3px;
+    }
     .landing-actions {
       display: flex;
       flex-wrap: wrap;
@@ -75,6 +86,10 @@
       text-decoration: none;
     }
     .ghost-link:hover { background: var(--c-surface); }
+    .ghost-link:focus-visible {
+      outline: 2px solid var(--c-accent);
+      outline-offset: 3px;
+    }
     .ghost-link svg { width: 1em; height: 1em; fill: currentColor; }
     .landing-extra {
       display: flex;
@@ -106,10 +121,27 @@
       font-size: 1.1rem;
       letter-spacing: -0.02em;
     }
+    .author-name a {
+      color: inherit;
+      text-decoration: none;
+    }
+    .author-name a:hover { color: var(--c-accent); text-decoration: underline; text-underline-offset: 3px; }
     .author-role { margin: 0.3rem 0 0; color: #3D4A5C; font-size: 0.95rem; }
-    .author-links { display: flex; gap: 0.9rem; margin-top: 0.4rem; }
-    .author-link { color: var(--c-accent); font-size: 0.82rem; font-weight: 600; text-decoration: none; }
-    .author-link:hover { text-decoration: underline; }
+    .author-links { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.65rem; }
+    .author-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.45em 0.8em;
+      border: 1.5px solid var(--c-border);
+      border-radius: 999px;
+      color: var(--c-text);
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .author-link:hover { background: var(--c-surface); color: var(--c-accent); }
+    .author-link svg { width: 0.95em; height: 0.95em; fill: currentColor; }
 
     .band { width: 100%; border-block: 1px solid var(--rule); }
     .band--paper { background: var(--paper); }
@@ -322,6 +354,7 @@
     @media (max-width: 720px) {
       .landing-actions .start-button,
       .landing-actions .ghost-link { width: 100%; justify-content: center; }
+      .footer-cta { width: min(100%, 22rem); justify-content: center; }
       .rail { grid-template-columns: 1fr; }
       .paper-preview { transform: translateY(-1.25rem); margin-bottom: -1.25rem; }
       .paper-fade { height: 7rem; }
@@ -336,7 +369,7 @@
 </head>
 <body>
   <header class="landing">
-    <p class="landing-meta">Ignacio López Leis, Septiembre 2026</p>
+    <p class="landing-meta"><a class="landing-author" href="https://www.linkedin.com/in/lopezleisignacio/" target="_blank" rel="noopener noreferrer">Ignacio López Leis</a> · Septiembre 2026</p>
     <h1 class="landing-title" data-landing="title">IQAE en hardware IQM y CVaR</h1>
     <p class="landing-subtitle" data-landing="subtitle">Defensa de TFM · Máster en Computación Cuántica · UAM</p>
     <p class="landing-description" data-landing="description">Caracterización en hardware de la estimación iterativa de amplitud cuántica en procesadores IQM, con aplicación a la optimización de carteras bajo riesgo CVaR y validación bajo Basilea IV.</p>
@@ -345,6 +378,10 @@
         <svg viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0l10 6-10 6z"/></svg>
         <span data-landing="start-label">Empezar presentación</span>
       </button>
+      <a class="ghost-link" href="https://www.linkedin.com/in/lopezleisignacio/" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-.926 0-1.778-.652-1.778-1.777 0-.912.852-1.778 1.778-1.778s1.777.866 1.777 1.778c0 1.125-.851 1.777-1.777 1.777zM7.119 20.452H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+        LinkedIn
+      </a>
       <a class="ghost-link" href="https://github.com/NachoLopezLeis/QuantumCVaRPortfolioOptimization-TFMIgnacioLopez" target="_blank" rel="noopener noreferrer">
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82A7.68 7.68 0 0 1 8 4.64c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
         Código en GitHub
@@ -359,10 +396,13 @@
 
   <section class="authors" aria-label="Autores">
     <div class="author">
-      <p class="author-name">Ignacio López Leis</p>
+      <p class="author-name"><a href="https://www.linkedin.com/in/lopezleisignacio/" target="_blank" rel="noopener noreferrer">Ignacio López Leis</a></p>
       <p class="author-role">Autor · Máster en Computación Cuántica, UAM</p>
       <div class="author-links">
-        <a class="author-link" href="https://www.linkedin.com/in/lopezleisignacio/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+        <a class="author-link" href="https://www.linkedin.com/in/lopezleisignacio/" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-.926 0-1.778-.652-1.778-1.777 0-.912.852-1.778 1.778-1.778s1.777.866 1.777 1.778c0 1.125-.851 1.777-1.777 1.777zM7.119 20.452H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+          LinkedIn
+        </a>
         <a class="author-link" href="https://github.com/NachoLopezLeis/QuantumCVaRPortfolioOptimization-TFMIgnacioLopez" target="_blank" rel="noopener noreferrer">GitHub</a>
       </div>
     </div>
@@ -491,6 +531,7 @@
       <p class="footer-title">IQAE en hardware IQM y CVaR</p>
       <div class="footer-actions">
         <a class="footer-cta" href="TFM-IgnacioLopezLeis.pdf" download="TFM-IgnacioLopezLeis.pdf">Descargar PDF</a>
+        <a class="footer-cta footer-cta--ghost" href="https://www.linkedin.com/in/lopezleisignacio/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
         <a class="footer-cta footer-cta--ghost" href="https://github.com/NachoLopezLeis/QuantumCVaRPortfolioOptimization-TFMIgnacioLopez" target="_blank" rel="noopener noreferrer">Código en GitHub</a>
         <a class="footer-link" href="https://www.uam.es/" target="_blank" rel="noopener noreferrer">Universidad Autónoma de Madrid</a>
       </div>
